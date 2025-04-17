@@ -22,7 +22,7 @@ METHODS = {
     "POST": lambda url: requests.post(url, json={"product_id": 10, "quantity": 1})
 }
 
-def simulate_traffic(iterations=50):
+def simulate_traffic(iterations=200):
     for _ in range(iterations):
         endpoint = random.choice(ENDPOINTS)
         method = "POST" if "/orders" in endpoint and random.random() > 0.5 else "GET"
