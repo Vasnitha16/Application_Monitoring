@@ -1,5 +1,3 @@
-CREATE DATABASE IF NOT EXISTS monitoring;
-
 USE monitoring;
 
 CREATE TABLE IF NOT EXISTS api_logs (
@@ -12,11 +10,3 @@ CREATE TABLE IF NOT EXISTS api_logs (
     user_agent TEXT,
     timestamp DATETIME
 );
-
-SELECT endpoint, COUNT(*) AS request_count
-FROM api_logs
-GROUP BY endpoint
-ORDER BY request_count DESC;
-
-truncate table api_logs;
-select * from api_logs;
