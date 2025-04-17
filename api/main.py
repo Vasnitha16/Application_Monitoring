@@ -135,27 +135,68 @@ fake_inventory = {"Widget": 12, "Gadget": 7}
 metrics = {"requests": 0, "errors": 0, "per_endpoint": {}}
 
 
+# @app.middleware("http")
+# async def log_request_data(request: Request, call_next):
+#     request_id = str(uuid.uuid4())
+#     start_time = time.time()
+#     try:
+#         response = await call_next(request)
+#     except Exception as e:
+#         logger.error(f"Unhandled error: {str(e)}")
+#         metrics["errors"] += 1
+#         return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})
+    
+#     duration = round((time.time() - start_time) * 1000, 2)
+#     endpoint = request.url.path
+#     status_code = response.status_code
+
+#     metrics["requests"] += 1
+#     if status_code >= 400:
+#         metrics["errors"] += 1
+#     metrics["per_endpoint"].setdefault(endpoint, 0)
+#     metrics["per_endpoint"][endpoint] += 1
+
+#     log = {
+#         "request_id": request_id,
+#         "endpoint": endpoint,
+#         "method": request.method,
+#         "status_code": status_code,
+#         "response_time_ms": duration,
+#         "user_agent": request.headers.get("user-agent"),
+#         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+#     }
+#     logger.info(f"LOG | {log}")
+#     logger.kafka(log)
+#     return response
+
+
 @app.middleware("http")
 async def log_request_data(request: Request, call_next):
     request_id = str(uuid.uuid4())
     start_time = time.time()
+    
     try:
         response = await call_next(request)
+        status_code = response.status_code
+        level = "INFO" if status_code < 400 else "ERROR"
     except Exception as e:
+        status_code = 500
+        level = "ERROR"
         logger.error(f"Unhandled error: {str(e)}")
         metrics["errors"] += 1
         return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})
     
     duration = round((time.time() - start_time) * 1000, 2)
     endpoint = request.url.path
-    status_code = response.status_code
 
+    # Metrics tracking
     metrics["requests"] += 1
     if status_code >= 400:
         metrics["errors"] += 1
     metrics["per_endpoint"].setdefault(endpoint, 0)
     metrics["per_endpoint"][endpoint] += 1
 
+    # Log structure
     log = {
         "request_id": request_id,
         "endpoint": endpoint,
@@ -165,8 +206,16 @@ async def log_request_data(request: Request, call_next):
         "user_agent": request.headers.get("user-agent"),
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
     }
-    logger.info(f"LOG | {log}")
-    logger.kafka(log)
+
+    # Console log by level
+    if level == "INFO":
+        logger.info(f"LOG | {log}")
+    else:
+        logger.error(f"LOG | {log}")
+
+    # Send to Kafka topic based on level (info-logs or error-logs)
+    logger.kafka(log, level=level)
+
     return response
 
 
