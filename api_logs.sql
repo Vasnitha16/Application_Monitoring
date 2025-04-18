@@ -53,3 +53,5 @@ ORDER BY
 
 truncate table api_logs;
 select * from api_logs;
+select count(*) from api_logs;
+SELECT MIN(timestamp), MAX(timestamp) FROM api_logs;
