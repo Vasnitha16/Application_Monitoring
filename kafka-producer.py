@@ -72,29 +72,30 @@ log_levels = ["INFO", "ERROR", "DEBUG"]
 
 # Define multiple endpoints
 ENDPOINTS = [
-    "/users",
-    "/users/1",
-    "/products",
-    "/products/10",
-    "/orders",
-    "/orders/1",
-    "/status",
-    "/health",
-    "/inventory",
-    "/metrics"
+    "/users", "/users/1", "/products", "/products/10", "/orders", "/orders/1",
+    "/status", "/health", "/inventory", "/metrics",
+    "/invalid", "/doesnotexist", "/fake"
 ]
+
 
 http_methods = ["GET", "POST", "PUT", "DELETE"]  # Optional: random HTTP methods
 
 def create_log(level):
     endpoint = random.choice(ENDPOINTS)
+
+    # Logic to simulate 404s
+    if endpoint.startswith("/invalid") or endpoint.startswith("/fake") or "doesnotexist" in endpoint:
+        status_code = 404
+    else:
+        status_code = 200 if level == "INFO" else 500
+
     return {
         "log_id": str(uuid.uuid4()),
         "level": level,
         "message": sample_logs[level],
         "endpoint": endpoint,
-        "method": random.choice(http_methods),
-        "status_code": 200 if level == "INFO" else 500,
+        "method": random.choice(["GET", "POST"]),
+        "status_code": status_code,
         "response_time_ms": round(random.uniform(0.5, 5.0), 2),
         "user_agent": "log-producer-client/1.0",
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
