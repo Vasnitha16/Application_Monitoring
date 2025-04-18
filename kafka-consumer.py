@@ -90,6 +90,7 @@ from datetime import datetime
 # ✅ MySQL connection config
 db = mysql.connector.connect(
     host="localhost",
+    port=3307, 
     user="root",
     password="root",  # Update if different
     database="monitoring"
